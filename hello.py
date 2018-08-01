@@ -1,3 +1,6 @@
-import world.flat as fw
+from world.flat import World
 
-print('hello ' + fw.world())
+
+if __name__ == '__main__':
+    flat_earth = World()
+    print('hello ' + flat_earth.word())
