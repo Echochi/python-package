@@ -1,7 +1,6 @@
-class World:
-
+class Earth:
     def __init__(self):
         self.text = 'world'
 
-    def word(self):
+    def getWord(self):
         return self.text
