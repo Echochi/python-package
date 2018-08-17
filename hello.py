@@ -5,4 +5,4 @@ if __name__ == '__main__':
     earth = Earth()
     print('hello ' + earth.getWord())
     agg = BatchAgg()
-    print(agg.create_aggdict('batch'))
+    print(agg.create_aggdict(['batch']))
