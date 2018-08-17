@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 #!/Users/nash/Workspace/python.dev/python-package/bin/python3
+=======
+#!/Users/corneliavanderwalt/Workspace/python-package/bin/python3.6
+>>>>>>> Stashed changes
 
 # -*- coding: utf-8 -*-
 import re
