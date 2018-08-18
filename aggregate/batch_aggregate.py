@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Data
 
+import pandas as pd
 
 class BatchAggregate:
     
@@ -21,6 +22,7 @@ class BatchAggregate:
                         'max', 
                         'min']
         self._weight_cols = []
+        self._weight_var_cols = []
         self._sum_cols=[]
         self._mode_cols=[]
         self._mean_cols=[]
@@ -28,6 +30,7 @@ class BatchAggregate:
         self._count_cols=[]
         self._max_cols=[]
         self._min_cols=[]
+        self._df = pd.DataFrame()
         pass
         
 
@@ -60,6 +63,75 @@ class BatchAggregate:
             
         return batch_dict, col_list
 
+
+    def weight_catcolumns(self, sort_col, sort_col2, linear=True):
+        """Creat columkns of weights for each varaible in weighted columns
+        
+        Arguments:
+            df {dataframe} -- dataframe to be sorted
+            sort_col {string} -- column name of primary key column eg. user_id
+            sort_col2 {string} -- column name of secondary key column eg. order_id
+        
+        Keyword Arguments:
+            linear {bool} -- Weight can be linear or exponential (default: {True})
+        
+        Returns:
+            dataframe -- new dataframe containing weighted columns
+        """
+
+        top_str = list_topn()
+        
+        if sort_col2:
+            sort_by = [sort_col, sort_col2]
+        else:
+            sort_by = [sort_col]
+            
+        self._df = self._df.sort_values(by=sort_by).reset_index(drop=True)
+        self._df['increment_key'] = self._df.index
+        self._df['rank'] = self._df.groupby(sort_col)['increment_key'].rank(method='min')
+        
+        if linear:
+            self._df = linear_rank(self._df, sort_col, self._weight_cols, top_str)
+        else:
+            self._df = exponential_rank(self._df, self._weight_cols, top_str)
+        
+        del self._df['rank']
+        del self._df['increment_key']
+        
+        return self._df
+
+
+    def list_topn(self):
+        """Creates a list of lists, each list containing the top variables of the weighted columns
+        
+        Returns:
+            List[List] -- List of list of column variables
+        """
+        top_str = []
+        for col in self._weight_cols:
+            top_n = list(self._df[col].dropna().unique())
+            top_str.append(top_n)
+
+        return top_str
+
+
+    @property
+    def df(self):
+        """Dataframe on which aggregations are performed."""
+        print("getter of df called")
+        return self._df
+
+    @df.setter
+    def df(self, value: Data):
+        print("setter of df called")
+        self._df = value
+
+    @df.deleter
+    def df(self):
+        print("deleter of df called")
+        self._df = pd.DataFrame()
+
+
     @property
     def weight_cols(self):
         """List of column names to undergo 'weighted sum' aggregation."""
@@ -75,6 +147,22 @@ class BatchAggregate:
     def weight_cols(self):
         print("deleter of weight_cols called")
         self._weight_cols = []
+
+    @property
+    def weight_var_cols(self):
+        """List of weighted column names to undergo 'sum' aggregation."""
+        print("getter of weight_var_cols called")
+        return self._weight_var_cols
+
+    @weight_var_cols.setter
+    def weight_var_cols(self, value: List[str]):
+        print("setter of weight_var_cols called")
+        self._weight_var_cols = value
+
+    @weight_var_cols.deleter
+    def weight_var_cols(self):
+        print("deleter of weight_var_cols called")
+        self._weight_var_cols = []
 
     @property
     def sum_cols(self):
