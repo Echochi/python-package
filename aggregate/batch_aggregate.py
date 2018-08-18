@@ -1,5 +1,6 @@
 from typing import List
 
+
 class BatchAggregate:
     
     def __init__(self):
