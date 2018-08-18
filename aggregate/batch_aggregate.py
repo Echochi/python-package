@@ -19,7 +19,7 @@ class BatchAggregate:
                         'count', 
                         'max', 
                         'min']
-        self._weight_sum = []
+        self._weight_sum_ = []
         self._sum_=[]
         self._mode_=[]
         self._mean_=[]
@@ -38,13 +38,13 @@ class BatchAggregate:
             dictionary -- dictionary that can be used with with .agg
             list -- new column names of the resultant aggregated dataframe
         """
-        agg_list = [self._weight_sum, 
+        agg_list = [self._weight_sum_, 
                     self._sum_, 
                     self._mode_, 
                     self._mean_, 
                     self._median_, 
                     self._count_, 
-                    self._max_, s
+                    self._max_,
                     self._min_]
         batch_dict = {}
         col_list = []
@@ -60,20 +60,20 @@ class BatchAggregate:
         return batch_dict, col_list
 
     @property
-    def weight_sum(self):
+    def weight_sum_(self):
         """List of column names to undergo 'weighted sum' aggregation."""
-        print("getter of weight_sum called")
-        return self._weight_sum
+        print("getter of weight_sum_ called")
+        return self._weight_sum_
 
-    @weight_sum.setter
-    def weight_sum(self, value: List[str]):
-        print("setter of weight_sum called")
-        self._weight_sum = value
+    @weight_sum_.setter
+    def weight_sum_(self, value: List[str]):
+        print("setter of weight_sum_ called")
+        self._weight_sum_ = value
 
-    @weight_sum.deleter
-    def weight_sum(self):
-        print("deleter of weight_sum called")
-        self._weight_sum = []
+    @weight_sum_.deleter
+    def weight_sum_(self):
+        print("deleter of weight_sum_ called")
+        self._weight_sum_ = []
 
     @property
     def sum_(self):
