@@ -1,5 +1,5 @@
 import unittest
-from aggregate.batch_aggdict import BatchAgg
+from aggregate.batch_aggregate import BatchAggregate
 
 class Test_AggTestCase(unittest.TestCase):
     def test_dict(self):

@@ -1,1 +1,1 @@
-from aggregate import batch_aggdict
+from aggregate import batch_aggregate

@@ -1,4 +1,5 @@
 class BatchAggregate:
+    
     def __init__(self):
         self.col_app = ['weight_', 
                         'sum_', 
@@ -16,8 +17,9 @@ class BatchAggregate:
                         'count', 
                         'max', 
                         'min']
+        self._weight_sum = []
+        pass
         
-        return
 
     def create_aggdict(self, weight_sum=[], sum_=[], mode_=[], mean_=[], median_=[], count_=[], max_=[], min_=[]):
         """Input a list of columns names, naming the list according to the type of aggregation to be done and
@@ -52,23 +54,17 @@ class BatchAggregate:
         return x, col_list
 
     @property
-    def x(self):
-        """I'm the 'x' property."""
-        print("getter of x called")
-        return self._x
+    def weight_sum(self):
+        """The 'weight_sum' property."""
+        print("getter of weight_sum called")
+        return self._weight_sum
 
-    @x.setter
-    def x(self, value):
-        print("setter of x called")
-        self._x = value
+    @weight_sum.setter
+    def weight_sum(self, value):
+        print("setter of weight_sum called")
+        self._weight_sum = value
 
-    @x.deleter
-    def x(self):
-        print("deleter of x called")
-        del self._x
-
-
-c = C()
-c.x = 'foo'  # setter called
-foo = c.x    # getter called
-del c.x      # deleter called
+    @weight_sum.deleter
+    def weight_sum(self):
+        print("deleter of weight_sum called")
+        self._weight_sum = []
