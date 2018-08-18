@@ -21,7 +21,7 @@ class BatchAggregate:
         pass
         
 
-    def create_aggdict(self, weight_sum=[], sum_=[], mode_=[], mean_=[], median_=[], count_=[], max_=[], min_=[]):
+    def create_aggdict(self, sum_=[], mode_=[], mean_=[], median_=[], count_=[], max_=[], min_=[]):
         """Input a list of columns names, naming the list according to the type of aggregation to be done and
         output dictionary for aggregation and a list of the new column names
         
@@ -39,19 +39,19 @@ class BatchAggregate:
             dictionary -- dictionary that can be used with with .agg
             list -- new column names of the resultant aggregated dataframe
         """
-        agg_list = [weight_sum, sum_, mode_, mean_, median_, count_, max_, min_]
-        x = {}
+        agg_list = [self._weight_sum, sum_, mode_, mean_, median_, count_, max_, min_]
+        batch_dict = {}
         col_list = []
         
         for index, aggregation in enumerate(agg_list):
             for col_name in aggregation:
-                if col_name in x:
-                    x[col_name] += [self.agg_ops[index]]
+                if col_name in batch_dict:
+                    batch_dict[col_name] += [self.agg_ops[index]]
                 else:
-                    x[col_name] = [self.agg_ops[index]]
+                    batch_dict[col_name] = [self.agg_ops[index]]
                 col_list.append(self.col_app[index] + col_name)
             
-        return x, col_list
+        return batch_dict, col_list
 
     @property
     def weight_sum(self):
