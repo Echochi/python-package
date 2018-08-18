@@ -1,4 +1,4 @@
-class BatchAgg:
+class BatchAggregate:
     def __init__(self):
         self.col_app = ['weight_', 
                         'sum_', 
@@ -50,3 +50,25 @@ class BatchAgg:
                 col_list.append(self.col_app[index] + col_name)
             
         return x, col_list
+
+    @property
+    def x(self):
+        """I'm the 'x' property."""
+        print("getter of x called")
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        print("setter of x called")
+        self._x = value
+
+    @x.deleter
+    def x(self):
+        print("deleter of x called")
+        del self._x
+
+
+c = C()
+c.x = 'foo'  # setter called
+foo = c.x    # getter called
+del c.x      # deleter called
