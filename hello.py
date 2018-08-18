@@ -14,7 +14,7 @@ if __name__ == '__main__':
     print(agg.weight_sum)
     lst_wght = agg.weight_sum    # getter called
     print(agg.weight_sum,lst_wght)
+    agg.weight_sum = [1]  # setter called
     print(agg.create_aggdict())
-
     del agg.weight_sum  # deleter called
     print(agg.weight_sum, lst_wght)    
