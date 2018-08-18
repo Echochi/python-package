@@ -1,4 +1,4 @@
-from typing import List, Data
+from typing import List
 
 import pandas as pd
 
@@ -22,7 +22,6 @@ class BatchAggregate:
                         'max', 
                         'min']
         self._weight_cols = []
-        self._weight_var_cols = []
         self._sum_cols=[]
         self._mode_cols=[]
         self._mean_cols=[]
@@ -30,6 +29,9 @@ class BatchAggregate:
         self._count_cols=[]
         self._max_cols=[]
         self._min_cols=[]
+        self._weight_var_cols = []
+        self._lst_wv_cols = []
+        self._lst_lst_vars = []
         self._df = pd.DataFrame()
         pass
         
@@ -64,13 +66,13 @@ class BatchAggregate:
         return batch_dict, col_list
 
 
-    def weight_catcolumns(self, sort_col, sort_col2, linear=True):
+
+    def weight_catcolumns(self, sort_col, sort_col2=None, linear=True):
         """Creat columkns of weights for each varaible in weighted columns
         
         Arguments:
-            df {dataframe} -- dataframe to be sorted
             sort_col {string} -- column name of primary key column eg. user_id
-            sort_col2 {string} -- column name of secondary key column eg. order_id
+            sort_col2 {string} -- optional column name of secondary key column eg. order_id
         
         Keyword Arguments:
             linear {bool} -- Weight can be linear or exponential (default: {True})
@@ -79,7 +81,7 @@ class BatchAggregate:
             dataframe -- new dataframe containing weighted columns
         """
 
-        top_str = list_topn()
+        self._lst_lst_vars = self.list_topn()
         
         if sort_col2:
             sort_by = [sort_col, sort_col2]
@@ -91,9 +93,9 @@ class BatchAggregate:
         self._df['rank'] = self._df.groupby(sort_col)['increment_key'].rank(method='min')
         
         if linear:
-            self._df = linear_rank(self._df, sort_col, self._weight_cols, top_str)
+            self._df = self.linear_rank(sort_col)
         else:
-            self._df = exponential_rank(self._df, self._weight_cols, top_str)
+            self._df = self.exponential_rank()
         
         del self._df['rank']
         del self._df['increment_key']
@@ -111,8 +113,46 @@ class BatchAggregate:
         for col in self._weight_cols:
             top_n = list(self._df[col].dropna().unique())
             top_str.append(top_n)
-
+         
         return top_str
+
+
+    def linear_rank(self, sort_col):
+        """Weight columns linearly according to a group."""
+        self._df['rank_sum'] = self._df.groupby(sort_col)['rank'].transform(lambda x: x.sum())
+        for i, col in enumerate(self._weight_cols):
+            top_n = self._lst_lst_vars[i]
+            for n in top_n:
+                self._df[col + '_' + str(n)] = self._df.transform(lambda x: x['rank']/x['rank_sum'] if (x[col] == n) else 0, axis=1)
+        del self._df['rank_sum']
+
+        return self._df
+
+
+    def exponential_rank(self):
+        """Weight columns exponentially."""
+        for i, col in enumerate(self._weight_cols):
+            top_n = self._lst_lst_vars[i]
+            for n in top_n:
+                self._df[col + '_' + str(n)] = self._df.transform(lambda x: 1/x['rank'] if ((x[col] == n) & (x['rank'] != 0)) else 0, axis=1)
+
+        return self._df
+
+
+    def list_subcols(self):
+        """return new list of weighted column names."""
+        lst_subcols = []
+        for i, col in enumerate(self._weight_cols):
+            sub_cols = []
+            top_n = self._lst_lst_vars[i]
+            for n in top_n:
+                val =  str(n)
+                sub_cols.append(str(col) + '_' + val)
+            lst_subcols.append(sub_cols)
+            self._weight_var_cols = lst_subcols
+
+        return self._weight_var_cols
+            
 
 
     @property
@@ -122,7 +162,7 @@ class BatchAggregate:
         return self._df
 
     @df.setter
-    def df(self, value: Data):
+    def df(self, value: pd.DataFrame()):
         print("setter of df called")
         self._df = value
 
@@ -147,22 +187,6 @@ class BatchAggregate:
     def weight_cols(self):
         print("deleter of weight_cols called")
         self._weight_cols = []
-
-    @property
-    def weight_var_cols(self):
-        """List of weighted column names to undergo 'sum' aggregation."""
-        print("getter of weight_var_cols called")
-        return self._weight_var_cols
-
-    @weight_var_cols.setter
-    def weight_var_cols(self, value: List[str]):
-        print("setter of weight_var_cols called")
-        self._weight_var_cols = value
-
-    @weight_var_cols.deleter
-    def weight_var_cols(self):
-        print("deleter of weight_var_cols called")
-        self._weight_var_cols = []
 
     @property
     def sum_cols(self):
