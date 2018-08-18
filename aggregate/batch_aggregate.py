@@ -19,14 +19,14 @@ class BatchAggregate:
                         'count', 
                         'max', 
                         'min']
-        self._weight_sum_ = []
-        self._sum_=[]
-        self._mode_=[]
-        self._mean_=[]
-        self._median_=[]
-        self._count_=[]
-        self._max_=[]
-        self._min_=[]
+        self._weight_cols = []
+        self._sum_cols=[]
+        self._mode_cols=[]
+        self._mean_cols=[]
+        self._median_cols=[]
+        self._count_cols=[]
+        self._max_cols=[]
+        self._min_cols=[]
         pass
         
 
@@ -38,14 +38,14 @@ class BatchAggregate:
             dictionary -- dictionary that can be used with with .agg
             list -- new column names of the resultant aggregated dataframe
         """
-        agg_list = [self._weight_sum_, 
-                    self._sum_, 
-                    self._mode_, 
-                    self._mean_, 
-                    self._median_, 
-                    self._count_, 
-                    self._max_,
-                    self._min_]
+        agg_list = [self._weight_cols, 
+                    self._sum_cols, 
+                    self._mode_cols, 
+                    self._mean_cols, 
+                    self._median_cols, 
+                    self._count_cols, 
+                    self._max_cols,
+                    self._min_cols]
         batch_dict = {}
         col_list = []
         
@@ -60,130 +60,130 @@ class BatchAggregate:
         return batch_dict, col_list
 
     @property
-    def weight_sum_(self):
+    def weight_cols(self):
         """List of column names to undergo 'weighted sum' aggregation."""
-        print("getter of weight_sum_ called")
-        return self._weight_sum_
+        print("getter of weight_cols called")
+        return self._weight_cols
 
-    @weight_sum_.setter
-    def weight_sum_(self, value: List[str]):
-        print("setter of weight_sum_ called")
-        self._weight_sum_ = value
+    @weight_cols.setter
+    def weight_cols(self, value: List[str]):
+        print("setter of weight_cols called")
+        self._weight_cols = value
 
-    @weight_sum_.deleter
-    def weight_sum_(self):
-        print("deleter of weight_sum_ called")
-        self._weight_sum_ = []
+    @weight_cols.deleter
+    def weight_cols(self):
+        print("deleter of weight_cols called")
+        self._weight_cols = []
 
     @property
-    def sum_(self):
+    def sum_cols(self):
         """List of column names to undergo 'sum' aggregation."""
-        print("getter of sum_ called")
-        return self._sum_
+        print("getter of sum_cols called")
+        return self._sum_cols
 
-    @sum_.setter
-    def sum_(self, value: List[str]):
-        print("setter of sum_ called")
-        self._sum_ = value
+    @sum_cols.setter
+    def sum_cols(self, value: List[str]):
+        print("setter of sum_cols called")
+        self._sum_cols = value
 
-    @sum_.deleter
-    def sum_(self):
-        print("deleter of sum_ called")
-        self._sum_ = []
+    @sum_cols.deleter
+    def sum_cols(self):
+        print("deleter of sum_cols called")
+        self._sum_cols = []
 
     @property
-    def mode_(self):
+    def mode_cols(self):
         """List of column names to undergo 'mode' aggregation."""
-        print("getter of mode_ called")
-        return self._mode_
+        print("getter of mode_cols called")
+        return self._mode_cols
 
-    @mode_.setter
-    def mode_(self, value: List[str]):
-        print("setter of mode_ called")
-        self._mode_ = value
+    @mode_cols.setter
+    def mode_cols(self, value: List[str]):
+        print("setter of mode_cols called")
+        self._mode_cols = value
 
-    @mode_.deleter
-    def mode_(self):
-        print("deleter of mode_ called")
-        self._mode_ = []
+    @mode_cols.deleter
+    def mode_cols(self):
+        print("deleter of mode_cols called")
+        self._mode_cols = []
 
     @property
-    def mean_(self):
+    def mean_cols(self):
         """List of column names to undergo 'mean' aggregation."""
-        print("getter of mean_ called")
-        return self._mean_
+        print("getter of mean_cols called")
+        return self._mean_cols
 
-    @mean_.setter
-    def mean_(self, value: List[str]):
-        print("setter of mean_ called")
-        self._mean_ = value
+    @mean_cols.setter
+    def mean_cols(self, value: List[str]):
+        print("setter of mean_cols called")
+        self._mean_cols = value
 
-    @mean_.deleter
-    def mean_(self):
-        print("deleter of mean_ called")
-        self._mean_ = []
+    @mean_cols.deleter
+    def mean_cols(self):
+        print("deleter of mean_cols called")
+        self._mean_cols = []
 
     @property
-    def median_(self):
+    def median_cols(self):
         """List of column names to undergo 'median' aggregation."""
-        print("getter of median_ called")
-        return self._median_
+        print("getter of median_cols called")
+        return self._median_cols
 
-    @median_.setter
-    def median_(self, value: List[str]):
-        print("setter of median_ called")
-        self._median_ = value
+    @median_cols.setter
+    def median_cols(self, value: List[str]):
+        print("setter of median_cols called")
+        self._median_cols = value
 
-    @median_.deleter
-    def median_(self):
-        print("deleter of median_ called")
-        self._median_ = []
+    @median_cols.deleter
+    def median_cols(self):
+        print("deleter of median_cols called")
+        self._median_cols = []
 
     @property
-    def count_(self):
+    def count_cols(self):
         """List of column names to undergo 'count' aggregation."""
-        print("getter of count_ called")
-        return self._count_
+        print("getter of count_cols called")
+        return self._count_cols
 
-    @count_.setter
-    def count_(self, value: List[str]):
-        print("setter of count_ called")
-        self._count_ = value
+    @count_cols.setter
+    def count_cols(self, value: List[str]):
+        print("setter of count_cols called")
+        self._count_cols = value
 
-    @count_.deleter
-    def count_(self):
-        print("deleter of count_ called")
-        self._count_ = []
+    @count_cols.deleter
+    def count_cols(self):
+        print("deleter of count_cols called")
+        self._count_cols = []
 
     @property
-    def max_(self):
+    def max_cols(self):
         """List of column names to undergo 'max' aggregation."""
-        print("getter of max_ called")
-        return self._max_
+        print("getter of max_cols called")
+        return self._max_cols
 
-    @max_.setter
-    def max_(self, value: List[str]):
-        print("setter of max_ called")
-        self._max_ = value
+    @max_cols.setter
+    def max_cols(self, value: List[str]):
+        print("setter of max_cols called")
+        self._max_cols = value
 
-    @max_.deleter
-    def max_(self):
-        print("deleter of max_ called")
-        self._max_ = []
+    @max_cols.deleter
+    def max_cols(self):
+        print("deleter of max_cols called")
+        self._max_cols = []
 
     @property
-    def min_(self):
+    def min_cols(self):
         """List of column names to undergo 'min' aggregation."""
-        print("getter of min_ called")
-        return self._min_
+        print("getter of min_cols called")
+        return self._min_cols
 
-    @min_.setter
-    def min_(self, value: List[str]):
-        print("setter of min_ called")
-        self._min_ = value
+    @min_cols.setter
+    def min_cols(self, value: List[str]):
+        print("setter of min_cols called")
+        self._min_cols = value
 
-    @min_.deleter
-    def min_(self):
-        print("deleter of min_ called")
-        self._min_ = []
+    @min_cols.deleter
+    def min_cols(self):
+        print("deleter of min_cols called")
+        self._min_cols = []
     
