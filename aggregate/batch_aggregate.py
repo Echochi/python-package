@@ -71,7 +71,9 @@ class BatchAggregate:
         """Creat columkns of weights for each varaible in weighted columns
         
         Arguments:
-            sort_col {string} -- column name of primary key column eg. user_id
+            sort_col {string} -- column name of primary key column which implies order or recency,
+                                 such as user_id which is unique, and which also has the order of signup implied.
+                                 Date can also be used.
             sort_col2 {string} -- optional column name of secondary key column eg. order_id
         
         Keyword Arguments:
