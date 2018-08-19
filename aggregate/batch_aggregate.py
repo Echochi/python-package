@@ -229,15 +229,15 @@ class BatchAggregate:
 
 
     def get_common_cols(self, df1, df2):
-    """returns list of column names that two dataframes have in common
+        """returns list of column names that two dataframes have in common
 
-    Arguments:
-        df1 {dataframe} -- larger dataframe
-        df2 {dataframe} -- smaller dataframe
+        Arguments:
+            df1 {dataframe} -- larger dataframe
+            df2 {dataframe} -- smaller dataframe
 
-    Returns:
-        list[string] -- list of column names common to both dataframes
-    """
+        Returns:
+            list[string] -- list of column names common to both dataframes
+        """
         num_names = list(df1)
         nonum_names = list(df2)
         common_names = []
