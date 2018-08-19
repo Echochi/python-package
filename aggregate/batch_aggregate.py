@@ -211,6 +211,23 @@ class BatchAggregate:
         return self._weight_var_cols
 
 
+    def uint8_to_int(self):
+        """Stadardizes datatypes by converting uint8 to int
+
+        Returns:
+            dataframe -- dataframe containing no uint8 columns
+        """
+        y =self._df.copy()
+        column_names = []
+        for i in range(0,len(y.columns)):
+            if y.dtypes[i] == 'uint8':
+                #print(i,y.dtypes[i])
+                col_name = str(y.columns[i])
+                column_names.append(col_name)
+                y[col_name + '_int'] = y[col_name].astype(int)
+        y = y.drop(column_names, axis=1)
+
+        return y
 
     @property
     def df(self):
