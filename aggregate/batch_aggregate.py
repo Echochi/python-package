@@ -44,7 +44,7 @@ class BatchAggregate:
             dictionary -- dictionary that can be used with with .agg
             list -- new column names of the resultant aggregated dataframe
         """
-        agg_list = [self._weight_cols,
+        agg_list = [self._weight_var_cols,
                     self._sum_cols,
                     self._mode_cols,
                     self._mean_cols,
@@ -127,7 +127,7 @@ class BatchAggregate:
         return top_str
 
 
-    def prob_to_cat():
+    def prob_to_cat(self):
         """Converts columns of probability into a single categorical column
 
         Returns:
@@ -211,6 +211,23 @@ class BatchAggregate:
         return self._weight_var_cols
 
 
+    def clean_agg_from_colnames(self):
+        """Clean columns names from appended aggregation strings. This function assumed there are no duplicates.
+
+        Returns:
+            dataframe -- dataframe with clean column names
+        """
+        new_names = self._df.columns.tolist()
+        for app in self._col_app:
+            lst_cluster_cols = self._df.columns.tolist()
+            for i, col in enumerate(lst_cluster_cols):
+                col = str(col).replace(str(app), '')
+                new_names[i] = col
+            self._df.columns = new_names
+
+        return self._df
+
+
     def uint8_to_int(self):
         """Stadardizes datatypes by converting uint8 to int
 
@@ -228,6 +245,7 @@ class BatchAggregate:
         y = y.drop(column_names, axis=1)
 
         return y
+
 
     @property
     def df(self):
