@@ -149,7 +149,7 @@ class BatchAggregate:
         return self._df
 
 
-    def otherise(self, df_col, n):
+    def otherise(self, df_col, n, lst_top_n=None):
         """Otherise dataframe columns if it contains too many values
 
         Arguments:
@@ -159,12 +159,15 @@ class BatchAggregate:
         Returns:
             series -- dataframe column with reduced values
         """
-        z = pd.DataFrame(df_col).copy()
-        z['val'] = 1
-        z.columns = ['key','val']
-        top_n = z.groupby('key').size().sort_values(ascending = False)[:n]
-        top_n = pd.DataFrame(top_n).reset_index()
-        top_n = list(top_n.key.values)
+        if lst_top_n:
+            top_n = lst_top_n
+        else:
+            z = pd.DataFrame(df_col).copy()
+            z['val'] = 1
+            z.columns = ['key','val']
+            top_n = z.groupby('key').size().sort_values(ascending = False)[:n]
+            top_n = pd.DataFrame(top_n).reset_index()
+            top_n = list(top_n.key.values)
         df_col = df_col.apply(lambda y: y if y in top_n else "Other")
         df_col = df_col.fillna("Other")
 
