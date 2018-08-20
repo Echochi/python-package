@@ -21,18 +21,20 @@ class BatchAggregate:
                         'count',
                         'max',
                         'min']
-        self._weight_cols = []          # list of original columns to be weight summed
-        self._sum_cols=[]
-        self._mode_cols=[]
-        self._mean_cols=[]
-        self._median_cols=[]
-        self._count_cols=[]
-        self._max_cols=[]
-        self._min_cols=[]
+        self._weight_cols = []          # list of original columns to find the sum of the weighted probability of top values
+        self._sum_cols=[]               # list of original columns to find the sum
+        self._mode_cols=[]              # list of original columns to find the mode
+        self._mean_cols=[]              # list of original columns to find the mean
+        self._median_cols=[]            # list of original columns to find the median
+        self._count_cols=[]             # list of original columns to find the count
+        self._max_cols=[]               # list of original columns to find the max
+        self._min_cols=[]               # list of original columns to find the min
         self._weight_var_cols = []      # new list of weighted probability columns
         self._lst_wv_cols = []          # list of all weighted column values
         self._lst_lst_vars = []         # list of lists of each weighted column's values
-        self._df = pd.DataFrame()
+        self._lst_batch_cols = []       # new column names after batch aggregations
+        self._batch_dict = {}           # dictionary of columns and their respective aggregations
+        self._df = pd.DataFrame()       # dataframe to be aggregated
         pass
 
 
@@ -52,19 +54,15 @@ class BatchAggregate:
                     self._count_cols,
                     self._max_cols,
                     self._min_cols]
-        batch_dict = {}
-        col_list = []
-
         for index, aggregation in enumerate(agg_list):
             for col_name in aggregation:
-                if col_name in batch_dict:
-                    batch_dict[col_name] += [self.agg_ops[index]]
+                if col_name in self._batch_dict:
+                    self._batch_dict[col_name] += [self.agg_ops[index]]
                 else:
-                    batch_dict[col_name] = [self.agg_ops[index]]
-                col_list.append(self.col_app[index] + col_name)
+                    self._batch_dict[col_name] = [self.agg_ops[index]]
+                self._lst_batch_cols.append(self.col_app[index] + col_name)
 
-        return batch_dict, col_list
-
+        return self._batch_dict, self._lst_batch_cols
 
 
     def weight_catcolumns(self, sort_col, sort_col2=None, linear=True, top_n_max=None):
@@ -105,6 +103,10 @@ class BatchAggregate:
 
         return self._df
 
+
+    def run_batch_agg(self, ):
+        self._df = self._df.groupby(['key1','key2','order_key']).agg(agg_dict).reset_index()
+        return self._df
 
     def list_topn(self, top_n_max=None):
         """Creates a list of lists, each list containing the top variables of the weighted columns
