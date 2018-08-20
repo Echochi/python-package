@@ -1,5 +1,6 @@
 from typing import List
 
+import numpy as np
 import pandas as pd
 
 class BatchAggregate:
@@ -54,8 +55,9 @@ class BatchAggregate:
             self._L2_aggcol = L2_aggcol
         if orderby_col:
             self._orderby_col = orderby_col
+        self.sort_key_cols()
         self.create_L0_aggcol()
-        self.weight_catcolumns(linear=True, top_n_max=None)
+        self.weight_catcolumns(linear, top_n_max)
         self.create_aggdict()
         self._df = self.uint8_to_int()
         self._df = self._df.groupby(self._L0_aggcol).agg(agg_dict).reset_index()
@@ -64,23 +66,12 @@ class BatchAggregate:
 
         # if doing manually with user_id and contact_number,
         # join and use
-        common_names = self.get_common_cols(df1, df2)
+        common_names = self.get_common_cols(df1, df2) # deprecation warning
         df1 = df1[['contact_number', 'spr_user_id'] + common_names]
         df2 = df2[['spr_user_id'] + common_names]
         df = df1.append(df2)
 
         return self._df
-
-
-    def create_L0_aggcol(self):
-
-        if sort_col2:
-            sort_by = [sort_col, sort_col2]
-        else:
-            sort_by = [sort_col]
-
-        return self._L0_aggcol
-
 
     def create_aggdict(self):
         """Input a list of columns names, naming the list according to the type of aggregation to be done and
@@ -109,7 +100,7 @@ class BatchAggregate:
         return self._batch_dict, self._lst_batch_cols
 
 
-    def weight_catcolumns(self, sort_col, sort_col2=None, linear=True, top_n_max=None):
+    def weight_catcolumns(self, linear=True, top_n_max=None):
         """Creat columkns of weights for each varaible in weighted columns
 
         Arguments:
@@ -127,7 +118,7 @@ class BatchAggregate:
         """
         self._lst_lst_vars = self.list_topn(top_n_max)
 
-        self._df = self._df.sort_values(by=self._L0_aggcol).reset_index(drop=True)
+        self._df = self._df.sort_values(by=[self._L0_aggcol, self._orderby_col]).reset_index(drop=True)
         self._df['increment_key'] = self._df.index
         self._df['rank'] = self._df.groupby(self._L0_aggcol)['increment_key'].rank(method='min')
 
@@ -141,10 +132,6 @@ class BatchAggregate:
 
         return self._df
 
-
-    def groupby_batch_agg(self, agg1, agg2, order_agg):
-        self._df = self._df.groupby([agg1, agg2, order_agg]).agg(self._batch_dict).reset_index()
-        return self._df
 
     def list_topn(self, top_n_max=None):
         """Creates a list of lists, each list containing the top variables of the weighted columns
@@ -165,6 +152,35 @@ class BatchAggregate:
             top_str.append(top_n)
 
         return top_str
+
+
+
+    def sort_key_cols(self):
+        # keep dataframe columns passed as original agg columns, dedup for merging at end
+        self._df['unique_key'] = None
+        if self._backup_L1_aggcol:
+            self._df['unique_key'] = np.where()
+        self._df['increment_key'] = self._df.index
+        # L1_aggcol, backup_L1_aggcol=None, L2_aggcol=None, orderby_col=None
+        return
+
+    def create_L0_aggcol(self):
+        # create list of column names used in groupby and sort
+        if sort_col2:
+            sort_by = [sort_col, sort_col2]
+        else:
+            sort_by = [sort_col]
+
+        return self._L0_aggcol
+
+    
+    def groupby_batch_agg(self, agg_cols):
+        """
+        Call aggregation on df using batch dictionary
+        # deprecation warning, for calling directly
+        """
+        self._df = self._df.groupby([agg_cols]).agg(self._batch_dict).reset_index()
+        return self._df
 
 
     def prob_to_cat(self):
@@ -235,12 +251,6 @@ class BatchAggregate:
         return self._df
 
 
-    def sort_key_cols(self):
-        # keep dataframe columns passed as original agg columns, dedup for merging at end
-
-
-        return
-
     def list_subcols(self):
         """return new list of weighted column names."""
         lst_subcols = []
@@ -275,7 +285,7 @@ class BatchAggregate:
 
     def get_common_cols(self, df1, df2):
         """returns list of column names that two dataframes have in common
-
+        # deprecation warning, for calling directly
         Arguments:
             df1 {dataframe} -- larger dataframe
             df2 {dataframe} -- smaller dataframe
