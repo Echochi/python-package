@@ -59,9 +59,10 @@ class BatchAggregate:
             self._orderby_col = orderby_col
         self.sort_key_cols()
         self.weight_catcolumns(linear, top_n_max)
-        self.create_aggdict()
+        self._batch_dict, self._lst_batch_cols = self.create_aggdict()
         self._df = self.uint8_to_int()
-        self._df = self._df.groupby(self._L0_aggcol).agg(agg_dict).reset_index()
+        self._df = self._df.groupby(self._L0_aggcol).agg(self._batch_dict).reset_index()
+        self._df.columns = self._L0_aggcol + self._lst_batch_cols
         self.prob_to_cat()
         self.clean_agg_from_colnames()
 
