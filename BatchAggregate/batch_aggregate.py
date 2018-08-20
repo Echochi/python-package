@@ -24,6 +24,7 @@ class BatchAggregate:
                         'min']
         self._L1_aggcol = ''            # string name of primary column used to aggregate by
         self._backup_L1_aggcol = None   # in case L1_agg_aggcol contains NULL, backup id to aggregate on
+        self._backup2_L1_aggcol = None   # in case L1_agg_aggcol contains NULL, backup id to aggregate on
         self._L2_aggcol = None          # string name of secondary column used to aggregate by
         self._orderby_col = None          # string name of secondary column used to aggregate by
         self._L0_aggcol = []          # created agg column of non-NULL unique id's
@@ -43,19 +44,20 @@ class BatchAggregate:
         self._df = pd.DataFrame()       # dataframe to be aggregated
         pass
 
-    def run_batch(self, L1_aggcol, backup_L1_aggcol=None, L2_aggcol=None, orderby_col=None, linear=True, top_n_max=None):
+    def run_batch(self, L1_aggcol, backup_L1_aggcol=None, backup2_L1_aggcol=None, L2_aggcol=None, orderby_col=None, linear=True, top_n_max=None):
         # we need promary aggregate agg, backup aggregate agg -> create a unique non-null agg to aggregate on
         # need extra method to resolve secondary level agg column
         # next a sort by agg if we need additional level of complexity,
         self._L1_aggcol = L1_aggcol
         if backup_L1_aggcol:
             self._backup_L1_aggcol = backup_L1_aggcol
+        if backup2_L1_aggcol:
+            self._backup2_L1_aggcol = backup_L1_aggcol
         if L2_aggcol:
             self._L2_aggcol = L2_aggcol
         if orderby_col:
             self._orderby_col = orderby_col
         self.sort_key_cols()
-        self.create_L0_aggcol()
         self.weight_catcolumns(linear, top_n_max)
         self.create_aggdict()
         self._df = self.uint8_to_int()
@@ -147,36 +149,39 @@ class BatchAggregate:
         return top_str
 
 
-
-
     def sort_key_cols(self):
         # keep dataframe columns passed as original agg columns, dedup for merging at end
         # overwrite orderby col to include agg cols
         # copy key cols, agg by rank and save on unique key as self._key_cols
         self._df['unique_key'] = None
         if self._backup_L1_aggcol:
-            self._df['unique_key'] = np.where(self._df[self._L1_aggcol].notnull(), self._df[self._backup_L1_aggcol])
-            self._key_cols = self._df[['unique_key', self._L1_aggcol, self._backup_L1_aggcol]] # save original keys, backup key may be lost in aggregations, to append at end
+            self._df['unique_key'] = np.where(self._df[self._L1_aggcol].notnull(),
+                                              self._df[self._L1_aggcol],
+                                              self._df[self._backup_L1_aggcol])
+            if self._backup2_L1_aggcol:
+                self._df['unique_key'] = np.where(self._df['unique_key'].notnull(),
+                                                  self._df['unique_key'],
+                                                  self._df[self._backup2_L1_aggcol])
+                self._key_cols = self._df[['unique_key', self._L1_aggcol, self._backup_L1_aggcol], self._df[self._backup2_L1_aggcol]] # save original keys, backup key may be lost in aggregations, to append at end
+            else:
+                self._key_cols = self._df[['unique_key', self._L1_aggcol, self._backup_L1_aggcol]]
         else:
             self._df['unique_key'] = self._df[self._L1_aggcol]
             self._key_cols = None
         self._L0_aggcol = ['unique_key'] + [self._L2_aggcol]
         self._orderby_col = self._L0_aggcol + [self._orderby_col]
+        if self._key_cols:
+            self._key_cols = self.rank_keys()
         # rank _key_cols if backup cols exist
         # L1_aggcol, backup_L1_aggcol=None, L2_aggcol=None, orderby_col=None
         pass
 
 
-    def create_L0_aggcol(self):
-        # create list of column names used in groupby and sort
-        if sort_col2:
-            sort_by = [sort_col, sort_col2]
-        else:
-            sort_by = [sort_col]
+    def rank_keys(self):
+        # use groupby ranking function and sort and  select rank = 1
+        return self._key_cols
 
-        return self._L0_aggcol
 
-    
     def groupby_batch_agg(self, agg_cols):
         """
         Call aggregation on df using batch dictionary
