@@ -67,10 +67,10 @@ class BatchAggregate:
 
         # if doing manually with user_id and contact_number,
         # join and use
-        common_names = self.get_common_cols(df1, df2) # deprecation warning
-        df1 = df1[['contact_number', 'spr_user_id'] + common_names]
-        df2 = df2[['spr_user_id'] + common_names]
-        df = df1.append(df2)
+        # common_names = self.get_common_cols(df1, df2) # deprecation warning
+        # df1 = df1[['contact_number', 'spr_user_id'] + common_names]
+        # df2 = df2[['spr_user_id'] + common_names]
+        # df = df1.append(df2)
 
         return self._df
 
