@@ -26,7 +26,7 @@ class BatchAggregate:
         self._backup_L1_aggcol = None   # in case L1_agg_aggcol contains NULL, backup id to aggregate on
         self._L2_aggcol = None          # string name of secondary column used to aggregate by
         self._orderby_col = None          # string name of secondary column used to aggregate by
-        self._L0_aggcol = None          # created agg column of non-NULL unique id's
+        self._L0_aggcol = []          # created agg column of non-NULL unique id's
         self._weight_cols = []          # list of original columns to find the sum of the weighted probability of top values
         self._sum_cols=[]               # list of original columns to find the sum
         self._mode_cols=[]              # list of original columns to find the mode
@@ -41,7 +41,6 @@ class BatchAggregate:
         self._lst_batch_cols = []       # new column names after batch aggregations
         self._batch_dict = {}           # dictionary of columns and their respective aggregations
         self._df = pd.DataFrame()       # dataframe to be aggregated
-        self._key_cols = pd.DataFrame() # key columns used to aggregate and sort
         pass
 
     def run_batch(self, L1_aggcol, backup_L1_aggcol=None, L2_aggcol=None, orderby_col=None, linear=True, top_n_max=None):
@@ -103,12 +102,6 @@ class BatchAggregate:
     def weight_catcolumns(self, linear=True, top_n_max=None):
         """Creat columkns of weights for each varaible in weighted columns
 
-        Arguments:
-            sort_col {string} -- column name of primary agg column which implies order or recency,
-                                 such as user_id which is unique, and which also has the order of signup implied.
-                                 Date can also be used.
-            sort_col2 {string} -- optional column name of secondary agg column eg. order_id
-
         Keyword Arguments:
             linear {bool} -- Weight can be linear or exponential (default: {True})
             top_n {bool} -- Weight can be linear or exponential (default: {True})
@@ -118,7 +111,7 @@ class BatchAggregate:
         """
         self._lst_lst_vars = self.list_topn(top_n_max)
 
-        self._df = self._df.sort_values(by=[self._L0_aggcol, self._orderby_col]).reset_index(drop=True)
+        self._df = self._df.sort_values(by=[self._orderby_col]).reset_index(drop=True)
         self._df['increment_key'] = self._df.index
         self._df['rank'] = self._df.groupby(self._L0_aggcol)['increment_key'].rank(method='min')
 
@@ -155,14 +148,24 @@ class BatchAggregate:
 
 
 
+
     def sort_key_cols(self):
         # keep dataframe columns passed as original agg columns, dedup for merging at end
+        # overwrite orderby col to include agg cols
+        # copy key cols, agg by rank and save on unique key as self._key_cols
         self._df['unique_key'] = None
         if self._backup_L1_aggcol:
-            self._df['unique_key'] = np.where()
-        self._df['increment_key'] = self._df.index
+            self._df['unique_key'] = np.where(self._df[self._L1_aggcol].notnull(), self._df[self._backup_L1_aggcol])
+            self._key_cols = self._df[['unique_key', self._L1_aggcol, self._backup_L1_aggcol]] # save original keys, backup key may be lost in aggregations, to append at end
+        else:
+            self._df['unique_key'] = self._df[self._L1_aggcol]
+            self._key_cols = None
+        self._L0_aggcol = ['unique_key'] + [self._L2_aggcol]
+        self._orderby_col = self._L0_aggcol + [self._orderby_col]
+        # rank _key_cols if backup cols exist
         # L1_aggcol, backup_L1_aggcol=None, L2_aggcol=None, orderby_col=None
-        return
+        pass
+
 
     def create_L0_aggcol(self):
         # create list of column names used in groupby and sort
