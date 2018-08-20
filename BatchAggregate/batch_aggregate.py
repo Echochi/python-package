@@ -5,7 +5,7 @@ import pandas as pd
 class BatchAggregate:
 
     def __init__(self):
-        self.col_app = ['weight_',
+        self._col_app = ['weight_',
                         'sum_',
                         'mode_',
                         'mean_',
@@ -13,7 +13,7 @@ class BatchAggregate:
                         'count_',
                         'max_',
                         'min_']
-        self.agg_ops = ['sum',
+        self._agg_ops = ['sum',
                         'sum',
                         lambda x: x.value_counts().index[0] if len(x.value_counts()) else None,
                         'mean',
@@ -21,6 +21,11 @@ class BatchAggregate:
                         'count',
                         'max',
                         'min']
+        self._L1_aggcol = ''            # string name of primary column used to aggregate by
+        self._backup_L1_aggcol = None   # in case L1_agg_aggcol contains NULL, backup id to aggregate on
+        self._L2_aggcol = None          # string name of secondary column used to aggregate by
+        self._orderby_col = None          # string name of secondary column used to aggregate by
+        self._L0_aggcol = None          # created agg column of non-NULL unique id's
         self._weight_cols = []          # list of original columns to find the sum of the weighted probability of top values
         self._sum_cols=[]               # list of original columns to find the sum
         self._mode_cols=[]              # list of original columns to find the mode
@@ -35,7 +40,46 @@ class BatchAggregate:
         self._lst_batch_cols = []       # new column names after batch aggregations
         self._batch_dict = {}           # dictionary of columns and their respective aggregations
         self._df = pd.DataFrame()       # dataframe to be aggregated
+        self._key_cols = pd.DataFrame() # key columns used to aggregate and sort
         pass
+
+    def run_batch(self, L1_aggcol, backup_L1_aggcol=None, L2_aggcol=None, orderby_col=None, linear=True, top_n_max=None):
+        # we need promary aggregate agg, backup aggregate agg -> create a unique non-null agg to aggregate on
+        # need extra method to resolve secondary level agg column
+        # next a sort by agg if we need additional level of complexity,
+        self._L1_aggcol = L1_aggcol
+        if backup_L1_aggcol:
+            self._backup_L1_aggcol = backup_L1_aggcol
+        if L2_aggcol:
+            self._L2_aggcol = L2_aggcol
+        if orderby_col:
+            self._orderby_col = orderby_col
+        self.create_L0_aggcol()
+        self.weight_catcolumns(linear=True, top_n_max=None)
+        self.create_aggdict()
+        self._df = self.uint8_to_int()
+        self._df = self._df.groupby(self._L0_aggcol).agg(agg_dict).reset_index()
+        self.prob_to_cat()
+        self.clean_agg_from_colnames()
+
+        # if doing manually with user_id and contact_number,
+        # join and use
+        common_names = self.get_common_cols(df1, df2)
+        df1 = df1[['contact_number', 'spr_user_id'] + common_names]
+        df2 = df2[['spr_user_id'] + common_names]
+        df = df1.append(df2)
+
+        return self._df
+
+
+    def create_L0_aggcol(self):
+
+        if sort_col2:
+            sort_by = [sort_col, sort_col2]
+        else:
+            sort_by = [sort_col]
+
+        return self._L0_aggcol
 
 
     def create_aggdict(self):
@@ -69,10 +113,10 @@ class BatchAggregate:
         """Creat columkns of weights for each varaible in weighted columns
 
         Arguments:
-            sort_col {string} -- column name of primary key column which implies order or recency,
+            sort_col {string} -- column name of primary agg column which implies order or recency,
                                  such as user_id which is unique, and which also has the order of signup implied.
                                  Date can also be used.
-            sort_col2 {string} -- optional column name of secondary key column eg. order_id
+            sort_col2 {string} -- optional column name of secondary agg column eg. order_id
 
         Keyword Arguments:
             linear {bool} -- Weight can be linear or exponential (default: {True})
@@ -81,20 +125,14 @@ class BatchAggregate:
         Returns:
             dataframe -- new dataframe containing weighted columns
         """
-
         self._lst_lst_vars = self.list_topn(top_n_max)
 
-        if sort_col2:
-            sort_by = [sort_col, sort_col2]
-        else:
-            sort_by = [sort_col]
-
-        self._df = self._df.sort_values(by=sort_by).reset_index(drop=True)
+        self._df = self._df.sort_values(by=self._L0_aggcol).reset_index(drop=True)
         self._df['increment_key'] = self._df.index
-        self._df['rank'] = self._df.groupby(sort_col)['increment_key'].rank(method='min')
+        self._df['rank'] = self._df.groupby(self._L0_aggcol)['increment_key'].rank(method='min')
 
         if linear:
-            self._df = self.linear_rank(sort_col)
+            self._df = self.linear_rank(self._L0_aggcol)
         else:
             self._df = self.exponential_rank()
 
@@ -104,8 +142,8 @@ class BatchAggregate:
         return self._df
 
 
-    def run_batch_agg(self, ):
-        self._df = self._df.groupby(['key1','key2','order_key']).agg(agg_dict).reset_index()
+    def groupby_batch_agg(self, agg1, agg2, order_agg):
+        self._df = self._df.groupby([agg1, agg2, order_agg]).agg(self._batch_dict).reset_index()
         return self._df
 
     def list_topn(self, top_n_max=None):
@@ -143,8 +181,7 @@ class BatchAggregate:
         for index, category in enumerate(self._weight_cols):
             df2 = self._df[top_col_list[index]]
             drop_columns += top_col_list[index]
-            for i, col_name in enumerate(top_col_list[index]):
-                self._df[str(category)] = df2.idxmax(axis=1)
+            self._df[str(category)] = df2.idxmax(axis=1)
             self._df[str(category)] = self._df[str(category)].apply(lambda x: x.split(str(category) + '_', 1)[-1])
         self._df = self._df.drop(drop_columns, axis=1)
 
@@ -197,6 +234,12 @@ class BatchAggregate:
 
         return self._df
 
+
+    def sort_key_cols(self):
+        # keep dataframe columns passed as original agg columns, dedup for merging at end
+
+
+        return
 
     def list_subcols(self):
         """return new list of weighted column names."""

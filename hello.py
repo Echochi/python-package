@@ -1,6 +1,6 @@
 import pandas as pd
 from world.flat import Earth
-from aggregate.batch_aggregate import BatchAggregate
+from BatchAggregate.batch_aggregate import BatchAggregate
 
 if __name__ == '__main__':
     earth = Earth()
@@ -26,8 +26,8 @@ if __name__ == '__main__':
     print(df2)
     print(agg.list_subcols())
 
-    top_str = list_topn(weight_num_users, columns)
-    sub_cols = list_subcols(columns, top_str)
+    top_str = agg.list_topn(4)
+    sub_cols = agg.list_subcols()
 
 
 """
